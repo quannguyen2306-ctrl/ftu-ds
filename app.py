@@ -1,14 +1,11 @@
 # Author:- Anurag Gupta Email:- 999.anuraggupta@mail.com
-from django.shortcuts import render
 from flask import Flask, render_template 
 import pandas as pd
-import folium
-from folium.plugins import HeatMap
 ###-STEP 1 DOWNLOAD DATA
 # See details of API at:- https://aqicn.org/api/
 
 
-my_data = pd.read_csv('/Users/nguyenhoangquan/Documents/FTU/data/prediction2.csv')
+my_data = pd.read_csv('./prediction3.csv')
 
 data_dict = { 
     "lat": my_data['midpoint_lat'],
