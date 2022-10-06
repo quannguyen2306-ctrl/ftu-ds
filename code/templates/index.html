@@ -1,0 +1,175 @@
+<html>
+
+<head>
+  <title>AIRFIC</title>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- playground-hide -->
+  <script>
+    const process = { env: {} };
+    process.env.GOOGLE_MAPS_API_KEY =
+      "AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg";
+  </script>
+  <!-- playground-hide-end -->
+  <link rel="stylesheet" type="text/css" href="../static/style.css" />
+  <!-- <link rel="stylesheet" href="./index.js"> -->
+</head>
+
+<body>
+  <div class="topnav" id="myTopnav">
+    <a href="#home" class="active">Home</a>
+    <a href="#about">About</a>
+    <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+      <i class="fa fa-bars"></i>
+    </a>
+  </div>
+  <div id="content">
+    <div id="infor">
+      <div id="floating-panel">
+        <input type="text" id="autocomplete" placeholder="Enter a place">
+      </div>
+    </div>  
+
+      <div id="map"></div>
+
+    
+  </div>
+
+
+
+  <!-- 
+     The `defer` attribute causes the callback to execute after the full HTML
+     document has been parsed. For non-blocking uses, avoiding race conditions,
+     and consistent behavior across browsers, consider loading using Promises
+     with https://www.npmjs.com/package/@googlemaps/js-api-loader.
+    -->
+  <script>
+    function myFunction() {
+      var x = document.getElementById("myTopnav");
+      if (x.className === "topnav") {
+        x.className += " responsive";
+      } else {
+        x.className = "topnav";
+      }
+    }
+    /* Data points defined as a mixture of WeightedLocation and LatLng objects */
+    aqi_data = myFunc({{data|tojson}})
+    function myFunc(vars){ 
+      return vars
+    }
+    let map;
+    let service;
+    let infowindow;
+    function initMap() {
+      var heatMapData = [ ]
+      for (i=0; i<aqi_data[0].length; i++){ 
+        heatMapData.push({ location: new google.maps.LatLng(aqi_data[0][i], aqi_data[1][i]), weight: aqi_data[2][i]/500 })
+      }
+      // Create a bounding box with sides ~10km away from the center point
+     
+      var hcm = new google.maps.LatLng(10.8231, 106.6297);
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: hcm,
+        zoom: 12,
+        mapTypeId: 'roadmap'
+      });
+      var heatmap = new google.maps.visualization.HeatmapLayer({
+        data: heatMapData
+      });
+      heatmap.setMap(map)
+      infoWindow = new google.maps.InfoWindow();
+      const locationButton = document.createElement("button");
+
+      locationButton.textContent = "Pin to Current Location";
+      locationButton.classList.add("custom-map-control-button");
+      map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(locationButton);
+      locationButton.addEventListener("click", () => {
+        // Try HTML5 geolocation.
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              };
+    
+              infoWindow.setPosition(pos);
+              infoWindow.setContent("You are here.");
+              infoWindow.open(map);
+              map.setCenter(pos);
+              map.setZoom(18)
+
+            },
+            () => {
+              handleLocationError(true, infoWindow, map.getCenter());
+            }
+          );
+        } else {
+          // Browser doesn't support Geolocation
+          handleLocationError(false, infoWindow, map.getCenter());
+        }
+      });
+      initAutoComplete()
+    }
+
+    let autocomplete;
+    function initAutoComplete() {
+      autocomplete = new google.maps.places.Autocomplete(
+        document.getElementById('autocomplete'), {
+        types: ['establishment'],
+        fields: ['place_id', 'geometry', 'name']
+      }
+      );
+      autocomplete.addListener('place_changed', onPlaceChanged)
+
+    }
+    function createMarker(place) {
+
+      new google.maps.Marker({
+          position: place.geometry.location,
+          map: map
+      });
+  }
+    function onPlaceChanged() {
+      var place = autocomplete.getPlace();
+      if (!place.geometry) {
+        document.getElementById('autocomplete').placeholder = 'Enter a place'
+      } else {
+
+        console.log(place.name)
+        console.log(place)
+        var request = {
+          query: place.name,
+          fields: ['name', 'geometry'],
+        };
+
+        var service = new google.maps.places.PlacesService(map);
+
+        service.findPlaceFromQuery(request, function (results, status) {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            for (var i = 0; i < results.length; i++) {
+              createMarker(results[i]);
+            }
+            map.setCenter(results[0].geometry.location);
+            map.setZoom(18)
+          }
+        });
+
+      }
+
+    }
+
+
+
+
+
+  </script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAwMUue6vEVBj8Xkq7xti0QMM49DwQUOrg&callback=initMap&libraries=visualization,places&v=weekly&sensor=true"
+    async defer></script>
+  <script async defer </script>
+
+  </script>
+</body>
+
+</html>
